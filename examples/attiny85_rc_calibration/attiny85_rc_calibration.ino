@@ -120,7 +120,32 @@ void loop(void) {
     Serial.println("RC calibrated correctly!");
   }
 
+  Serial.print(F("Erasing chip one more time..."));
+  avrprog.eraseChip();
+  Serial.println(F("Done!"));
 
+  const image_t *finalimage = images[1];
+
+  if (!avrprog.writeImage(finalimage->image_hexcode,
+                          pgm_read_byte(&finalimage->image_pagesize),
+                          pgm_read_word(&finalimage->chipsize))) {
+    avrprog.error(F("Failed to write flash"));
+  }
+
+  Serial.println(F("\nVerifing flash..."));
+  if (!avrprog.verifyImage(finalimage->image_hexcode)) {
+    avrprog.error(F("Failed to verify flash"));
+  }
+  Serial.println(F("\nFinal Flash verified correctly!"));
+
+  Serial.println(F("\nWrite calibrated OSCCAL to flash for more persistent storage"));
+  if (!avrprog.writeByteToFlash(0x3FF,
+                                pgm_read_byte(&finalimage->image_pagesize),
+                                osscal_value)) {
+    avrprog.error(F("Failed to write byte in flash"));
+  }
+
+  Serial.println(F("\nAll done!"));
 
 #if !defined(ESP32)
   // no 'tone' on ESP32
