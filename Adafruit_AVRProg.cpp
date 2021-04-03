@@ -598,6 +598,11 @@ bool Adafruit_AVRProg::flashPage(byte *pagebuff, uint16_t pageaddr,
   return true;
 }
 
+// Read one byte from EEPROM
+int8_t Adafruit_AVRProg::readByteEEPROM(unsigned int addr) {
+  return isp_transaction(0xA0, (addr >> 8) & 0x1F, addr & 0xFF, 0x00) & 0xFF;
+}
+
 // Simply polls the chip until it is not busy any more - for erasing and
 // programming
 void Adafruit_AVRProg::busyWait(void) {
@@ -627,6 +632,94 @@ void Adafruit_AVRProg::generateClock() {
   TCCR1B = _BV(WGM13) | _BV(WGM12) | _BV(CS10); // no clock prescale
 #else
   error(F("Clock generation only supported on AVRs"));
+#endif
+}
+
+/**************************************************************************/
+/*!
+ @brief  If your target chip will be running with internal RC oscillator,
+ We can perform an calibration with the method described in AVR053.
+ ONLY FOR AVR 'HOSTS' with a crystal oscillator, which is accurate.
+ */
+/**************************************************************************/
+bool Adafruit_AVRProg::internalRcCalibration() {
+#ifdef __AVR__
+  Serial.println(F("Perform Internal RC Calibration"));
+    
+  pinMode(_reset, OUTPUT);
+  digitalWrite(_reset, LOW);  //hold RST
+  delay(50);
+  pinMode(_miso, INPUT);
+  pinMode(_mosi, INPUT);
+  digitalWrite(_mosi, HIGH);  //pull UP mosi
+  digitalWrite(_miso, HIGH);  //pull UP miso, suppress noise
+  digitalWrite(_sck, HIGH);  //pull UP sck, suppress noise
+  //let MOSI act as OC2A, 16E6/(2*244)=32787
+    
+  TCCR2A = 0;
+  TCCR2B = 0;
+  TCNT2 = 0;
+  pinMode(_mosi, OUTPUT);
+  TCCR2A = (0b01<<COM2A0)|(0b10<<WGM20); //TOGGLE MOSI on CTC
+  TCCR2B = (0b001<<CS20);
+  OCR2A = 243;
+    
+    
+    delay(50);
+    pinMode(_reset, INPUT);  //release RST
+    
+    //waiting for calibration response
+    unsigned char edge_count = 0;
+    unsigned char osscal_value = 0xFF;
+    unsigned long millis_begin = millis();
+    boolean cali_finished = false;
+    boolean cali_last = HIGH;
+    while (!cali_finished) {
+        unsigned long millis_now = millis();
+        if ((millis_now - millis_begin) > 600) {
+            cali_finished = true;
+        }
+        else {
+            boolean cali_input = digitalRead(MISO);
+            if (cali_input != cali_last) {
+                edge_count++;
+                cali_last = cali_input;
+                if (edge_count >= 8) {
+                    cali_finished = true;
+                }
+            }
+        }
+    }
+
+    Serial.print(edge_count);
+    Serial.println(F(" edge received."));
+    
+    
+    TCCR2A = 0;
+    TCCR2B = 0;
+    pinMode(_mosi, INPUT);
+    digitalWrite(_mosi, LOW);
+    digitalWrite(_miso, LOW);
+    digitalWrite(_sck, LOW);
+    
+    /*  if (edge_count >= 8) {
+     Serial.println(F("\tCalibrated successfully!"));
+     }
+     else {
+     error_no_fatal(F("Failed to calibrate chip"));
+     goto END_ISP;
+     }*/
+    startProgramMode(FLASH_CLOCKSPEED);
+osscal_value = readByteEEPROM(0);
+                              endProgramMode();
+                              Serial.print(F("\nOsccal is 0x"));
+                              Serial.print(osscal_value, HEX);
+                              Serial.println(F(" from EEPROM."));
+    
+    
+    
+#else
+    error(F("Internal RC Calibration only supported on AVRs"));
 #endif
 }
 

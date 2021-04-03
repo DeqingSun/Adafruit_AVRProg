@@ -33,7 +33,7 @@ typedef struct image {
 #if defined(__SAMD21G18A__) || defined(TEENSYDUINO)
   byte image_hexcode[50000]; ///< Max buffer for intel hex format image (text)
 #else
-  byte image_hexcode[10000]; ///< Max buffer for intel hex format image (text)
+  byte image_hexcode[1500]; ///< Max buffer for intel hex format image (text)
 #endif
 } image_t;
 
@@ -69,6 +69,7 @@ public:
     @param led The pin to use for the LED */
   void setErrorLED(uint8_t led) { errLED = led; }
   void generateClock(void);
+  bool internalRcCalibration();
 
   bool targetPower(bool poweron);
   uint16_t readSignature(void);
@@ -86,6 +87,7 @@ private:
 
   bool flashPage(byte *pagebuff, uint16_t pageaddr, uint8_t pagesize);
   bool flashWord(uint8_t hilo, uint16_t addr, uint8_t data);
+    int8_t readByteEEPROM(unsigned int addr);
   const byte *readImagePage(const byte *hextext, uint16_t pageaddr,
                             uint8_t pagesize, byte *page);
   byte hexToByte(byte h);

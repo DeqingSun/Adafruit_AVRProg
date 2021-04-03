@@ -108,6 +108,9 @@ void loop(void) {
     Serial.println("Fuses verified correctly!");
   }
 
+  // perform RC calibration
+  avrprog.internalRcCalibration();
+
 
 
 #if !defined(ESP32)
