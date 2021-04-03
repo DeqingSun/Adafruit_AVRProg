@@ -3,8 +3,8 @@
 Adafruit_AVRProg avrprog = Adafruit_AVRProg();
 
 /*
- * Pins to target
- */
+   Pins to target
+*/
 #define AVRPROG_SCK 13
 #define AVRPROG_MISO 12
 #define AVRPROG_MOSI 11
@@ -75,7 +75,7 @@ void loop(void) {
   Serial.println(F("Done!"));
 
   if (!avrprog.programFuses(
-          targetimage->image_progfuses)) { // get fuses ready to program
+        targetimage->image_progfuses)) { // get fuses ready to program
     avrprog.error(F("Programming Fuses fail"));
   }
 
@@ -107,6 +107,8 @@ void loop(void) {
   } else {
     Serial.println("Fuses verified correctly!");
   }
+
+
 
 #if !defined(ESP32)
   // no 'tone' on ESP32
