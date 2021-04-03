@@ -79,6 +79,10 @@ void loop(void) {
     avrprog.error(F("Programming Fuses fail"));
   }
 
+  Serial.print(F("Erasing chip again..."));
+  avrprog.eraseChip();
+  Serial.println(F("Done!"));
+
   if (!avrprog.verifyFuses(targetimage->image_progfuses,
                            targetimage->fusemask)) {
     avrprog.error(F("Failed to verify fuses"));
@@ -109,7 +113,12 @@ void loop(void) {
   }
 
   // perform RC calibration
-  avrprog.internalRcCalibration();
+  unsigned char osscal_value = avrprog.internalRcCalibration();
+  if (osscal_value == 0xFF) {
+    avrprog.error("Failed to perform RC calibration");
+  } else {
+    Serial.println("RC calibrated correctly!");
+  }
 
 
 

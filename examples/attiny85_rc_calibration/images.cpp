@@ -9,10 +9,10 @@ const image_t PROGMEM image_328 = {
     0x930B,
     // Programming fuses, written before writing to flash. Fuses set to
     // zero are untouched.
-    {0x03, 0xE2, 0xD5, 0xFF}, // {lock, low, high, extended}
+    {0x03, 0xE2, 0xDD, 0xFF}, // {lock, low, high, extended}
     // Normal fuses, written after writing to flash (but before
     // verifying). Fuses set to zero are untouched.
-    {0x0, 0x0, 0x0, 0x0}, // {lock, low, high, extended}
+    {0x0, 0x0, 0xD5, 0x0}, // {lock, low, high, extended}
     // Fuse verify mask. Any bits set to zero in these values are
     // ignored while verifying the fuses after writing them. All (and
     // only) bits that are unused for this atmega chip should be zero
