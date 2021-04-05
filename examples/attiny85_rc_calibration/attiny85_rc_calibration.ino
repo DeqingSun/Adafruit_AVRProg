@@ -34,7 +34,7 @@
    The next step is to read back the calibrated OSCCAL value from EEPROM. And
    flash a final blinkLED.ino.gemma.hex firmware. This tool will write a copy of
    the calibrated OSCCAL value to flash address 0x3FF, just to prevent EEPROM
-   corruption. And there should be an accurate 1Khz signal on the PB1 port that
+   corruption. And there should be an accurate 500Hz signal on the PB1 port that
    you can measure with an instrument.
 */
 
