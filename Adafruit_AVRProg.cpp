@@ -642,7 +642,7 @@ void Adafruit_AVRProg::generateClock() {
  ONLY FOR AVR 'HOSTS' with a crystal oscillator, which is accurate.
  */
 /**************************************************************************/
-bool Adafruit_AVRProg::internalRcCalibration() {
+uint8_t Adafruit_AVRProg::internalRcCalibration() {
 #ifdef __AVR__
   Serial.println(F("Perform Internal RC Calibration"));
 
@@ -728,6 +728,20 @@ bool Adafruit_AVRProg::internalRcCalibration() {
 #else
     error(F("Internal RC Calibration only supported on AVRs"));
 #endif
+}
+
+/**************************************************************************/
+/*!
+ @brief  Function to write a byte to certain address in Flash without
+ page erase. Useful for parameters.
+ */
+/**************************************************************************/
+bool Adafruit_AVRProg::writeByteToFlash(unsigned int addr, uint8_t pagesize, uint8_t content){
+  //calculate page number and offset.
+  memset(pageBuffer,0xFF,pagesize);
+  uint8_t pageOffset = addr & (pagesize-1);
+  pageBuffer[pageOffset]=content;
+  return flashPage(pageBuffer,addr,pagesize);
 }
 
 uint32_t Adafruit_AVRProg::isp_transaction(uint8_t a, uint8_t b, uint8_t c,
